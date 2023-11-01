@@ -1,20 +1,28 @@
 name: Generate Filenames of external documentation
 
 on:
-  workflow_dispatch
+  workflow_dispatch:
+    inputs: 
+      client_payload:
+        description: 'Payload'
+        required: true
+        type: string
+        default: '{}'
 
 jobs:
   create:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: Create and populate external documentation filenames file
         env:
-          FILE_NAME: ${{ github.event.client_payload.file-name }}
-          FILE_PATH: ./generated/${{ github.event.client_payload.file-name }}.docs.external.js
-          FILE_LIST: ${{ join(github.event.client_payload.file-list, '","') }}
+          FILE_NAME: ${{ fromJson(inputs.client_payload).file-name }}
+          FILE_PATH: ./generated/${{ fromJson(inputs.client_payload).file-name }}.docs.external.js
+          FILE_LIST: ${{ join(fromJson(inputs.client_payload).file-list, '","') }}
         run: |
           rm -f $FILE_PATH
           touch $FILE_PATH
@@ -29,9 +37,35 @@ jobs:
         shell: bash
       - name: Commit files # transfer the new html files back into the repository
         run: |
-         git config user.name github-actions[bot]
-         git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-         git checkout -b "test"
-         git add ./generated
-         git commit -m "Updating the repository GitHub html pages in the docs folder"
-         git push --set-upstream origin test
+          date=$(date '+%Y-%m-%d-%H-%M-%S')
+          branch="Update-${{ fromJson(inputs.client_payload).file-name }}-docs-$date"
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git checkout -b $branch
+          git add ./generated
+          if [[ `git status --porcelain` ]]; then
+            echo "GIT: Changes detected."
+            git commit -m "[AUTO] Updating backend docs files date: $date"
+            git fetch
+            git rebase origin/main
+            git checkout main
+            git pull origin main
+            git merge $branch
+            git push origin main
+          else
+            echo "GIT: No changes were detected."
+            echo "GIT: Exit without commit"
+          fi
+      - name: Trigger new deploy
+        uses: convictional/trigger-workflow-and-wait@v1.6.1
+        with:
+          owner: XpensePath
+          repo: XpensePath-Documentation
+          github_token: ${{ secrets.AUTH_TOKEN }}
+          workflow_file_name: deploy.yml
+          ref: main
+          wait_interval: 10
+          propagate_failure: true
+          trigger_workflow: true
+          wait_workflow: true
+         
