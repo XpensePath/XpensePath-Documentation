@@ -1,0 +1,37 @@
+name: Generate Filenames of external documentation
+
+on:
+  workflow_dispatch
+
+jobs:
+  create:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create and populate external documentation filenames file
+        env:
+          FILE_NAME: ${{ github.event.client_payload.file-name }}
+          FILE_PATH: ./generated/${{ github.event.client_payload.file-name }}.docs.external.js
+          FILE_LIST: ${{ join(github.event.client_payload.file-list, '","') }}
+        run: |
+          rm -f $FILE_PATH
+          touch $FILE_PATH
+          echo const "${FILE_NAME}Files" = ["\"${FILE_LIST}\""] >> $FILE_PATH
+          echo module.exports = "${FILE_NAME}Files" >> $FILE_PATH
+        
+          echo "cat $FILE_PATH"
+          cat $FILE_PATH
+          
+          echo "ls -a ."
+          ls -a .
+        shell: bash
+      - name: Commit files # transfer the new html files back into the repository
+        run: |
+         git config user.name github-actions
+         git config user.email github-actions@github.com
+         git checkout -b "test"
+         git add ./generated
+         git commit -m "Updating the repository GitHub html pages in the docs folder"
+         git push --set-upstream origin test

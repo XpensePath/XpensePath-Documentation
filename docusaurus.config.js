@@ -3,6 +3,7 @@
 
 const lightCodeTheme = require('prism-react-renderer/themes/github');
 const darkCodeTheme = require('prism-react-renderer/themes/dracula');
+const backendFiles = require('./backend.docs.external')
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
@@ -123,6 +124,18 @@ const config = {
         darkTheme: darkCodeTheme,
       },
     }),
+  plugins: [
+    [
+      "docusaurus-plugin-remote-content",
+      {
+        // options here
+        name: "backend-content", // used by CLI, must be path safe
+        sourceBaseUrl: "https://raw.githubusercontent.com/XpensePath/Rest-Api/main/docs/", // the base url for the markdown (gets prepended to all of the documents when fetching)
+        outDir: "docs/backend", // the base directory to output to.
+        documents: backendFiles, // the file names to download
+      },
+    ],
+  ],
 };
 
 module.exports = config;
