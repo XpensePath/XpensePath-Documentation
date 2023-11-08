@@ -31,9 +31,11 @@ jobs:
           a=$""
           for (( i=0; i<$LEN; i++ )) ; do
             echo "Element $i:"
-            a+=$( echo "$API_ARRAY" | jq ".[$i].resource" ) 
+            value1=$( echo "$API_ARRAY" | jq .[$i].resource ) 
+            value2=$( echo "$API_ARRAY" | jq ".[$i].link" ) 
+            a+="$value1"
             a+=":" 
-            a+=$( echo "$API_ARRAY" | jq "{"specPath": .[$i].link, "outputDir":  .[$i].resource}" )
+            a+="{\"specPath\": $value2, \"outputDir\": \"docs/backend/api/$(echo $value1 | sed 's/^.//;s/.$//' )\"}"
             if [ $i -lt $(expr $LEN - 1) ]
             then
                a+="," 
