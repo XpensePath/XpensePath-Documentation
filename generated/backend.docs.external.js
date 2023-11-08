@@ -1,2 +1,2 @@
-const backendFiles = ["Intro.md","TEST.md","TEST2.MD"]
+const backendFiles = ["Intro.md"]
 module.exports = backendFiles
