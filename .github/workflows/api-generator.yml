@@ -53,6 +53,7 @@ jobs:
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git checkout -b $branch
           git add ./generated
+          git add ./docs/backend/api
           if [[ `git status --porcelain` ]]; then
             echo "GIT: Changes detected."
             git commit -m "[AUTO] Updating backend docs files date: $date"
