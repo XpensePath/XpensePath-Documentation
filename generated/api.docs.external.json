@@ -1,2 +1,1 @@
-{
-}
+{"bankAccounts":{"specPath": "https://raw.githubusercontent.com/XpensePath/Rest-Api/main/docs/openApi/bankAccounts.json", "outputDir": "docs/backend/api/bankAccounts"},"category":{"specPath": "https://raw.githubusercontent.com/XpensePath/Rest-Api/main/docs/openApi/category.json", "outputDir": "docs/backend/api/category"}}
