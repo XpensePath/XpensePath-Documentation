@@ -42,6 +42,7 @@ jobs:
             fi
           done
           echo "{$a}" >> $FILE_PATH
+          yarn
           yarn docusaurus gen-api-docs all
         shell: bash
       - name: Commit files
