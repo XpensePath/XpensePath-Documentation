@@ -25,6 +25,7 @@ jobs:
         run: |
           rm -f $FILE_PATH
           touch $FILE_PATH
+          API_ARRAY=$( echo "$API_ARRAY" | tr "'" '"')
           LEN=$( echo "$API_ARRAY" | jq '. | length' )
           echo "got $LEN elements"
           a=$""
