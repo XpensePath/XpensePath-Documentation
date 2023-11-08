@@ -1,0 +1,77 @@
+name: Generate Filenames of external documentation
+
+on:
+  workflow_dispatch:
+    inputs: 
+      client_payload:
+        description: 'Payload'
+        required: true
+        type: string
+        default: '{}'
+
+jobs:
+  api:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create and populate external documentation filenames file
+        env:
+          API_ARRAY: ${{ inputs.client_payload }}
+          FILE_PATH: ./generated/api.docs.external.json
+        run: |
+          rm -f $FILE_PATH
+          touch $FILE_PATH
+          LEN=$( echo "$API_ARRAY" | jq '. | length' )
+          echo "got $LEN elements"
+          a=$""
+          for (( i=0; i<$LEN; i++ )) ; do
+            echo "Element $i:"
+            a+=$( echo "$API_ARRAY" | jq ".[$i].resource" ) 
+            a+=":" 
+            a+=$( echo "$API_ARRAY" | jq "{"specPath": .[$i].link, "outputDir":  .[$i].resource}" )
+            if [ $i -lt $(expr $LEN - 1) ]
+            then
+               a+="," 
+            fi
+          done
+          echo "{$a}" >> $FILE_PATH
+          yarn docusaurus gen-api-docs all
+        shell: bash
+      - name: Commit files
+        run: |
+          date=$(date '+%Y-%m-%d-%H-%M-%S')
+          branch="Update-${{ fromJson(inputs.client_payload).file-name }}-docs-$date"
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git checkout -b $branch
+          git add ./generated
+          if [[ `git status --porcelain` ]]; then
+            echo "GIT: Changes detected."
+            git commit -m "[AUTO] Updating backend docs files date: $date"
+            git fetch
+            git rebase origin/main
+            git checkout main
+            git pull origin main
+            git merge $branch
+            git push origin main
+          else
+            echo "GIT: No changes were detected."
+            echo "GIT: Exit without commit"
+          fi
+      - name: Trigger new deploy
+        uses: convictional/trigger-workflow-and-wait@v1.6.1
+        with:
+          owner: XpensePath
+          repo: XpensePath-Documentation
+          github_token: ${{ secrets.AUTH_TOKEN }}
+          workflow_file_name: deploy.yml
+          ref: main
+          wait_interval: 10
+          propagate_failure: true
+          trigger_workflow: true
+          wait_workflow: true
+         

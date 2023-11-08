@@ -1,9 +1,11 @@
-// @ts-check
+// @ts-nocheck
 // Note: type annotations allow type checking and IDEs autocompletion
 
 const lightCodeTheme = require('prism-react-renderer/themes/github');
 const darkCodeTheme = require('prism-react-renderer/themes/dracula');
-const backendFiles = require('./generated/backend.docs.external')
+const backendFiles = require('./generated/backend.docs.external.js')
+const data = require('./generated/api.docs.external.json');
+
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
@@ -43,6 +45,8 @@ const config = {
           sidebarPath: require.resolve('./sidebars.js'),
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
+          docLayoutComponent: "@theme/DocPage",
+          docItemComponent: "@theme/ApiItem", // derived from docusaurus-theme-openapi-docs
           editUrl:
             'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
         },
@@ -135,7 +139,16 @@ const config = {
         documents: backendFiles, // the file names to download
       },
     ],
+    [
+      'docusaurus-plugin-openapi-docs',
+      {
+        id: "api", // plugin id
+        docsPluginId: "classic", // id of plugin-content-docs or preset for rendering docs
+        config: data
+      },
+    ]
   ],
+  themes: ["docusaurus-theme-openapi-docs"], // export theme components
 };
 
 module.exports = config;
